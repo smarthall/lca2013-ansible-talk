@@ -1,6 +1,6 @@
 ---
 - name: Install and setup a simple webserver
-  hosts: config01.int.tildaslash.com
+  hosts: host
   tasks:
   - name: install latest apache
     action: yum name=$item state=latest
@@ -12,8 +12,15 @@
     action: copy src=httpd.conf dest=/etc/httpd/conf/httpd.conf mode=644 owner=root group=root
     notify: reload apache
 
+  - name: install web index
+    action: copy src=index.html dest=/var/www/html/index.html mode=644 owner=apache group=apache
+
   - name: enable port 80 on the firewall
     action: lineinfile dest=/etc/sysconfig/iptables line='-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT' state=present regexp='^-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT$' insertafter='^-A INPUT -i lo -j ACCEPT$'
+    notify: restart iptables
+
+  - name: make sure iptables is up
+    action: service name=iptables state=started enabled=yes
 
   - name: set apache to start on startup
     action: service name=httpd state=started enabled=yes
@@ -23,4 +30,5 @@
     action: service name=httpd state=restarted
   - name: reload apache
     action: service name=httpd state=reloaded
-
+  - name: restart iptables
+    action: service name=iptables state=restarted
