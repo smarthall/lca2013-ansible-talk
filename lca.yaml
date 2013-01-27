@@ -1,0 +1,26 @@
+---
+- name: Install and setup a simple webserver
+  hosts: config01.int.tildaslash.com
+  tasks:
+  - name: install latest apache
+    action: yum name=$item state=latest
+    notify: restart apache
+    with_items:
+      - httpd
+
+  - name: install config file
+    action: copy src=httpd.conf dest=/etc/httpd/conf/httpd.conf mode=644 owner=root group=root
+    notify: reload apache
+
+  - name: enable port 80 on the firewall
+    action: lineinfile dest=/etc/sysconfig/iptables line='-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT' state=present regexp='^-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT$' insertafter='^-A INPUT -i lo -j ACCEPT$'
+
+  - name: set apache to start on startup
+    action: service name=httpd state=started enabled=yes
+
+  handlers:
+  - name: restart apache
+    action: service name=httpd state=restarted
+  - name: reload apache
+    action: service name=httpd state=reloaded
+
