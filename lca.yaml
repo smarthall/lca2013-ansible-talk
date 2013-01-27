@@ -15,6 +15,9 @@
   - name: install web index
     action: copy src=index.html dest=/var/www/html/index.html mode=644 owner=apache group=apache
 
+  - name: install a picture
+    action: copy src=yay.gif dest=/var/www/html/yay.gif mode=644 owner=apache group=apache
+
   - name: enable port 80 on the firewall
     action: lineinfile dest=/etc/sysconfig/iptables line='-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT' state=present regexp='^-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT$' insertafter='^-A INPUT -i lo -j ACCEPT$'
     notify: restart iptables
